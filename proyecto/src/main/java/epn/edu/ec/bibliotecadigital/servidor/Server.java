@@ -5,25 +5,27 @@
  */
 package epn.edu.ec.bibliotecadigital.servidor;
 
-
 import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFrame;
 
 /**
  *
  * @author Daniela Ramos
  */
-public class Server extends Thread{
+public class Server extends Thread {
+
     private ServerSocket ser;
     private int port;
     private int count = 0;
     private int errorCount = 0;
     private boolean monitor = false;
-    private int maxThreads;
-    private JFrame frame;
+    private final int maxThreads =1;
+    private boolean disponible=true;
 
     public Server(int port) {
         this.port = port;
@@ -34,20 +36,19 @@ public class Server extends Thread{
         try {
             File carpetaCompartida = new File("C:\\Computacion Distribuida");
             carpetaCompartida.mkdir();
-            for(File file :carpetaCompartida.listFiles()){
-                file.delete();
-            }
             ser = new ServerSocket(port);
             while (true) {
-                Socket clientSocket = ser.accept();
-                new Thread(new ServerRunnable(clientSocket,this)).start();
+                //                Socket clientSocket = ser.accept();
+                //                new Thread(new ServerRunnable(clientSocket, this)).start()
+                proccesRequest();
             }
         } catch (IOException e) {
             e.printStackTrace();
-
+        } catch (Exception ex) {
+            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public synchronized void finishDebitProcesor(boolean pError)
             throws Exception {
         while (this.monitor) {
@@ -69,7 +70,7 @@ public class Server extends Thread{
         }
     }
 
-    private synchronized void debitByAccount(Object[] accBal)
+    private synchronized void proccesRequest()
             throws Exception {
         while (this.monitor || (this.count > this.maxThreads)) {
             if (this.count > this.maxThreads) {
@@ -81,10 +82,9 @@ public class Server extends Thread{
         }
         this.monitor = true;
         try {
-            
-            
+
             Socket clientSocket = ser.accept();
-            //new Thread(new ServerRunnable2(clientSocket,this)).start();
+            new Thread(new ServerRunnable(clientSocket, this)).start();
             this.count++;
             System.out.println(
                     "Numero de Hilos Levantados " + count);
@@ -94,20 +94,24 @@ public class Server extends Thread{
         }
     }
 
+    public boolean isDisponible() {
+        return disponible;
+    }
 
-    
+    public void setDisponible(boolean disponible) {
+        this.disponible = disponible;
+    }
+
     public static void main(String[] args) {
-        
+
         Server server = new Server(8888);
         server.start();
-        
-        BalanceadorCarga balanceador = new BalanceadorCarga(7777);
-        balanceador.start();
-        
+
+//        BalanceadorCarga balanceador = new BalanceadorCarga(7777);
+//        balanceador.start();
+
 ////        Server2 server2 = new Server2(9999);
 //        server2.start();
-        
-        
     }
-    
+
 }

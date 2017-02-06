@@ -7,23 +7,19 @@ package epn.edu.ec.bibliotecadigital.servidor;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.Socket;
-import org.apache.commons.io.IOUtils;
 
 /**
  *
  * @author Daniela Ramos
  */
-public class BalancerRunnable implements Runnable{
+public class BalancerRunnable implements Runnable {
+
     protected Socket clientSocket;
-   
-   protected boolean disponible;
-   
+    
+    protected boolean disponible;
 
     public BalancerRunnable(Socket clientSocket, boolean disponible) {
         this.clientSocket = clientSocket;
@@ -33,21 +29,39 @@ public class BalancerRunnable implements Runnable{
     @Override
     public void run() {
         try {
-                System.out.println(disponible);
-            DataOutputStream dataOut = new DataOutputStream(clientSocket.getOutputStream());
-             
-            if (disponible) {
-                dataOut.writeUTF("8888");
-            }else{
-               
-                dataOut.writeUTF("9999");
+//            System.out.println(disponible);
+//            DataOutputStream dataOut = new DataOutputStream(clientSocket.getOutputStream());
+//            
+//            if (disponible) {
+//                dataOut.writeUTF("8888");
+//            } else {
+//                dataOut.writeUTF("9999");
+//            }
+//            dataOut.close();
+
+            Socket clientSocketServer = new Socket(InetAddress.getByName("127.0.0.1"), 8888);
+            DataOutputStream dataOut = new DataOutputStream(clientSocketServer.getOutputStream());
+            dataOut.writeUTF("verificarEstado");
+            DataInputStream dataIn = new DataInputStream(clientSocketServer.getInputStream());  
+            boolean disponibleServerOne = Boolean.parseBoolean(dataIn.readUTF());
+            if (disponibleServerOne) {
+                dataOut = new DataOutputStream(clientSocket.getOutputStream());
+                dataOut.writeUTF(String.valueOf(disponibleServerOne));
+            } else {
+                clientSocketServer = new Socket(InetAddress.getByName("127.0.0.1"), 9999);
+                dataIn = new DataInputStream(clientSocketServer.getInputStream());
+                disponibleServerOne = Boolean.parseBoolean(dataIn.readUTF());
+                if (disponibleServerOne) {
+                    dataOut = new DataOutputStream(clientSocket.getOutputStream());
+                    dataOut.writeUTF(String.valueOf(disponibleServerOne));
+                } else {
+
+                }
             }
-            dataOut.close();
+
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    
-    
 }

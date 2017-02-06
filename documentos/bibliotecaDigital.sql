@@ -18,3 +18,9 @@ create table usuarioLibros(
 	nombreCuenta varchar(100) references usuario,
 	codigoLibro integer references libro
 );
+
+create table disponibilidad(
+	idDisponibilidad serial primary key,
+	realizado boolean not null,
+	nombreCuenta varchar(100) references usuario
+);

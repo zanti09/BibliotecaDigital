@@ -5,8 +5,10 @@
     <class>epn.edu.ec.bibliotecadigital.entidades.Usuariolibros</class>
     <class>epn.edu.ec.bibliotecadigital.entidades.Usuario</class>
     <class>epn.edu.ec.bibliotecadigital.entidades.Libro</class>
+    <class>epn.edu.ec.bibliotecadigital.entidades.Disponibilidad</class>
     <properties>
-      <property name="javax.persistence.jdbc.url" value="jdbc:postgresql://192.168.43.83:5432/bibliotecaDigital"/>
+      <!--<property name="javax.persistence.jdbc.url" value="jdbc:postgresql://192.168.43.83:5432/bibliotecaDigital"/>-->
+      <property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/bibliotecaDigital"/>
       <property name="javax.persistence.jdbc.user" value="postgres"/>
       <property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver"/>
       <property name="javax.persistence.jdbc.password" value="root"/>

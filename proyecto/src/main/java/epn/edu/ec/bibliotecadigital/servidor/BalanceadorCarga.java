@@ -15,10 +15,11 @@ import javax.swing.JFrame;
  *
  * @author Daniela Ramos
  */
-public class BalanceadorCarga extends Thread{
-       private ServerSocket ser;
+public class BalanceadorCarga extends Thread {
+
+    private ServerSocket ser;
     private int port;
-    
+
     private boolean disponible;
 
     public BalanceadorCarga(int port) {
@@ -31,16 +32,16 @@ public class BalanceadorCarga extends Thread{
             setDisponible(true);
             File carpetaCompartida = new File("C:\\Computacion Distribuida");
             carpetaCompartida.mkdir();
-            for(File file :carpetaCompartida.listFiles()){
+            for (File file : carpetaCompartida.listFiles()) {
                 file.delete();
             }
             ser = new ServerSocket(port);
             while (true) {
                 Socket clientSocket = ser.accept();
-                new Thread(new BalancerRunnable(clientSocket,isDisponible())).start();
+                new Thread(new BalancerRunnable(clientSocket, isDisponible())).start();
                 if (disponible) {
                     setDisponible(false);
-                }else{
+                } else {
                     setDisponible(true);
                 }
             }
@@ -57,7 +58,5 @@ public class BalanceadorCarga extends Thread{
     public void setDisponible(boolean disponible) {
         this.disponible = disponible;
     }
-    
-    
 
 }
