@@ -222,7 +222,7 @@ public class UserApplication {
         Client client = new Client(8888, "127.0.0.1", "obtenerLista",usr.getNombrecuenta());
         client.start();
         try {
-            Thread.sleep(1500);
+            Thread.sleep(2000);
         } catch (InterruptedException ex) {
             Logger.getLogger(UserApplication.class.getName()).log(Level.SEVERE, null, ex);
         }

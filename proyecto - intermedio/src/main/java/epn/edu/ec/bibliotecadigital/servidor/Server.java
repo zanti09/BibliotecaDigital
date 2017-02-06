@@ -11,7 +11,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JFrame;
 
 /**
  *
@@ -24,8 +23,9 @@ public class Server extends Thread {
     private int count = 0;
     private int errorCount = 0;
     private boolean monitor = false;
-    private final int maxThreads =1;
-    private boolean disponible=true;
+    private final int maxThreads = 1;
+    private boolean disponible = true;
+    public boolean ocupado = false;
 
     public Server(int port) {
         this.port = port;
@@ -49,12 +49,12 @@ public class Server extends Thread {
         }
     }
 
-    public synchronized void finishDebitProcesor(boolean pError)
+    public synchronized void finishProcesor(boolean pError)
             throws Exception {
-        while (this.monitor) {
-            this.wait();
-        }
-        this.monitor = true;
+//        while (this.monitor) {
+//            this.wait();
+//        }
+//        this.monitor = true;
         try {
             this.count--;
             if (pError) {
@@ -72,18 +72,21 @@ public class Server extends Thread {
 
     private synchronized void proccesRequest()
             throws Exception {
-        while (this.monitor || (this.count > this.maxThreads)) {
-            if (this.count > this.maxThreads) {
-                System.out.println(
-                        "Numero de Hilos Levantados para tranferencias en maximo "
-                        + this.maxThreads);
-            }
-            this.wait();
+//        while (this.monitor || (this.count > this.maxThreads)) {
+
+        Socket clientSocket = ser.accept();
+        if (this.count >= this.maxThreads) {
+            System.out.println(
+                    "Numero de Hilos Levantados para tranferencias en maximo "
+                    + this.maxThreads);
+            ocupado = true;
+            new Thread(new ServerRunnable(clientSocket, this,ocupado)).start();
+            return;
         }
+//            this.wait();
+//        }
         this.monitor = true;
         try {
-
-            Socket clientSocket = ser.accept();
             new Thread(new ServerRunnable(clientSocket, this)).start();
             this.count++;
             System.out.println(
@@ -109,7 +112,6 @@ public class Server extends Thread {
 
 //        BalanceadorCarga balanceador = new BalanceadorCarga(7777);
 //        balanceador.start();
-
 ////        Server2 server2 = new Server2(9999);
 //        server2.start();
     }

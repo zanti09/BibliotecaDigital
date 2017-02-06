@@ -30,15 +30,10 @@ public class BalanceadorCarga extends Thread {
     public void run() {
         try {
             setDisponible(true);
-            File carpetaCompartida = new File("C:\\Computacion Distribuida");
-            carpetaCompartida.mkdir();
-            for (File file : carpetaCompartida.listFiles()) {
-                file.delete();
-            }
             ser = new ServerSocket(port);
             while (true) {
                 Socket clientSocket = ser.accept();
-                new Thread(new BalancerRunnable(clientSocket, isDisponible())).start();
+                new Thread(new BalancerRunnable(clientSocket)).start();
                 if (disponible) {
                     setDisponible(false);
                 } else {
@@ -47,7 +42,6 @@ public class BalanceadorCarga extends Thread {
             }
         } catch (IOException e) {
             e.printStackTrace();
-
         }
     }
 

@@ -41,6 +41,7 @@ public class ServerRunnable implements Runnable {
     protected Server server;
     EntityManagerFactory emf;
     Disponibilidad disponibilidad;
+    private boolean ocupado;
 
     public ServerRunnable(Socket clientSocket, Server server) {
         emf = Persistence.createEntityManagerFactory("epn.edu.ec_BibliotecaDigital_jar_1.0-SNAPSHOTPU");
@@ -48,18 +49,33 @@ public class ServerRunnable implements Runnable {
         this.server = server;
     }
 
+    public ServerRunnable(Socket clientSocket, Server server, boolean ocupado) {
+        emf = Persistence.createEntityManagerFactory("epn.edu.ec_BibliotecaDigital_jar_1.0-SNAPSHOTPU");
+        this.clientSocket = clientSocket;
+        this.server = server;
+        this.ocupado = ocupado;
+    }
+
     @Override
     public void run() {
         boolean error = false;
-        try {
 
+        try {
             DataInputStream dataIn = new DataInputStream(clientSocket.getInputStream());
-            String accion = dataIn.readUTF();
+            String serverOrBalace = dataIn.readUTF();
             DataOutputStream dataOut = new DataOutputStream(clientSocket.getOutputStream());
+            if (serverOrBalace.equals("balanceador")) {
+                dataOut.writeBoolean(server.ocupado);
+                dataOut.close();
+                return;
+            }
+
+            String accion = dataIn.readUTF();
+            dataOut = new DataOutputStream(clientSocket.getOutputStream());
             OutputStream out;
             Libro lbr;
             String nombreUsuario = dataIn.readUTF();
-            disponibilidad=new Disponibilidad();
+            disponibilidad = new Disponibilidad();
             disponibilidad.setNombrecuenta(new Usuario(nombreUsuario));
             disponibilidad.setRealizado(false);
             switch (accion) {
@@ -131,6 +147,7 @@ public class ServerRunnable implements Runnable {
                     ObjectOutputStream outToServer = new ObjectOutputStream(clientSocket.getOutputStream());
                     outToServer.writeObject(new LibroJpaController(emf).findLibroEntities());
                     disponibilidad.setRealizado(true);
+                    outToServer.close();
                     break;
                 case "verificarEstado":
                     dataOut.writeUTF(String.valueOf(server.isDisponible()));
@@ -139,13 +156,13 @@ public class ServerRunnable implements Runnable {
             dataIn.close();
 
         } catch (IOException e) {
-            disponibilidad.setRealizado(false);            
+            disponibilidad.setRealizado(false);
             e.printStackTrace();
             error = true;
         } finally {
             new DisponibilidadJpaController(emf).create(disponibilidad);
             try {
-                server.finishDebitProcesor(error);
+                server.finishProcesor(error);
             } catch (Exception ex) {
                 Logger.getLogger(ServerRunnable.class.getName()).log(Level.SEVERE, null, ex);
             }

@@ -51,12 +51,14 @@ public class Client extends Thread {
     public void run() {
         try {
 
-//            clientSocketBalancer = new Socket(InetAddress.getByName(serverIP), portBalancer);
-//            DataInputStream dataInBalancer = new DataInputStream(clientSocketBalancer.getInputStream());
-//            int portServer = Integer.parseInt(dataInBalancer.readUTF());
-//            clientSocketBalancer.close();
-            Socket clientSocket = new Socket(InetAddress.getByName(serverIP), portBalancer);
+            clientSocketBalancer = new Socket(InetAddress.getByName(serverIP), portBalancer);
+            DataInputStream dataInBalancer = new DataInputStream(clientSocketBalancer.getInputStream());
+            String ipServer = dataInBalancer.readUTF();
+            int portServer = dataInBalancer.readInt();
+            clientSocketBalancer.close();
+            Socket clientSocket = new Socket(ipServer, portServer);
             DataOutputStream dataOut = new DataOutputStream(clientSocket.getOutputStream());
+            dataOut.writeUTF("cliente");
             dataOut.writeUTF(accion);
             dataOut.writeUTF((String) params[0]);
             InputStream in;
@@ -111,10 +113,10 @@ public class Client extends Thread {
                 case "obtenerLista":
                     ObjectInputStream inFromClient = new ObjectInputStream(clientSocket.getInputStream());
                     System.out.println("Libros disponibles: \n");
-                    List<Libro> libros=(List<Libro>) inFromClient.readObject();
+                    List<Libro> libros = (List<Libro>) inFromClient.readObject();
                     System.out.println("\tCódigo\tNommbre\n");
                     for (Libro lbr : libros) {
-                        System.out.println("\t"+lbr.getCodigolibro() + "\t" + lbr.getNombre());
+                        System.out.println("\t" + lbr.getCodigolibro() + "\t" + lbr.getNombre());
                     }
                     inFromClient.close();
                     break;
