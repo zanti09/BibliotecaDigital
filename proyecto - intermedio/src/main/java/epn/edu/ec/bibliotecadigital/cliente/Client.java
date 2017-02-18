@@ -50,21 +50,22 @@ public class Client extends Thread {
     @Override
     public void run() {
         try {
-
             clientSocketBalancer = new Socket(InetAddress.getByName(serverIP), portBalancer);
             DataInputStream dataInBalancer = new DataInputStream(clientSocketBalancer.getInputStream());
+            DataOutputStream dataOut = new DataOutputStream(clientSocketBalancer.getOutputStream());
+            dataOut.writeUTF((String) params[0]);//nombre de usuario
             String ipServer = dataInBalancer.readUTF();
             int portServer = dataInBalancer.readInt();
             clientSocketBalancer.close();
             Socket clientSocket = new Socket(ipServer, portServer);
-            DataOutputStream dataOut = new DataOutputStream(clientSocket.getOutputStream());
-            dataOut.writeUTF("cliente");
+            dataOut = new DataOutputStream(clientSocket.getOutputStream());
             dataOut.writeUTF(accion);
-            dataOut.writeUTF((String) params[0]);
+            dataOut.writeUTF((String) params[0]);//nombre de usuario
             InputStream in;
             DataInputStream dataIn;
             switch (accion) {
                 case "bajar":
+                    
                     dataOut = new DataOutputStream(clientSocket.getOutputStream());
                     dataOut.writeUTF((String) params[1]);
                     dataIn = new DataInputStream(clientSocket.getInputStream());
@@ -130,10 +131,6 @@ public class Client extends Thread {
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
-
-    private void subirArchivo() throws IOException {
-
     }
 
     public static void main(String[] args) {

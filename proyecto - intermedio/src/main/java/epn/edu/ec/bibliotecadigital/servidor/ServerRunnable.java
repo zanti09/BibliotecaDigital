@@ -5,7 +5,6 @@
  */
 package epn.edu.ec.bibliotecadigital.servidor;
 
-import epn.edu.ec.bibliotecadigital.DisponibilidadJpaController;
 import epn.edu.ec.bibliotecadigital.entidades.Disponibilidad;
 import epn.edu.ec.bibliotecadigital.entidades.Libro;
 import epn.edu.ec.bibliotecadigital.entidades.Usuario;
@@ -15,7 +14,6 @@ import epn.edu.ec.bibliotecadigital.servicio.UsuariolibrosJpaController;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -24,9 +22,6 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Calendar;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import org.apache.commons.io.IOUtils;
@@ -58,26 +53,14 @@ public class ServerRunnable implements Runnable {
 
     @Override
     public void run() {
-        boolean error = false;
-
         try {
             DataInputStream dataIn = new DataInputStream(clientSocket.getInputStream());
-            String serverOrBalace = dataIn.readUTF();
             DataOutputStream dataOut = new DataOutputStream(clientSocket.getOutputStream());
-            if (serverOrBalace.equals("balanceador")) {
-                dataOut.writeBoolean(server.ocupado);
-                dataOut.close();
-                return;
-            }
-
-            String accion = dataIn.readUTF();
-            dataOut = new DataOutputStream(clientSocket.getOutputStream());
             OutputStream out;
+            String accion = dataIn.readUTF();
             Libro lbr;
             String nombreUsuario = dataIn.readUTF();
-            disponibilidad = new Disponibilidad();
-            disponibilidad.setNombrecuenta(new Usuario(nombreUsuario));
-            disponibilidad.setRealizado(false);
+            System.out.println("nombreUsuario" + nombreUsuario);
             switch (accion) {
                 case "bajar":
 
@@ -109,7 +92,6 @@ public class ServerRunnable implements Runnable {
                         usrLbr.setNombrecuenta(new Usuario(nombreUsuario));
                         new UsuariolibrosJpaController(emf).create(usrLbr);
                         in.close();
-                        disponibilidad.setRealizado(true);
                     } finally {
                         IOUtils.closeQuietly(out);
                     }
@@ -154,20 +136,10 @@ public class ServerRunnable implements Runnable {
                     break;
             }
             dataIn.close();
-
         } catch (IOException e) {
             disponibilidad.setRealizado(false);
             e.printStackTrace();
-            error = true;
-        } finally {
-            new DisponibilidadJpaController(emf).create(disponibilidad);
-            try {
-                server.finishProcesor(error);
-            } catch (Exception ex) {
-                Logger.getLogger(ServerRunnable.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
-        }
+        } 
     }
 
 }

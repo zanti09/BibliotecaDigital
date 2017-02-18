@@ -5,12 +5,20 @@
  */
 package epn.edu.ec.bibliotecadigital.servidor;
 
+import epn.edu.ec.bibliotecadigital.entidades.Libro;
+import epn.edu.ec.bibliotecadigital.servicio.LibroJpaController;
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 
 /**
  *
@@ -20,7 +28,7 @@ public class Server extends Thread {
 
     private ServerSocket ser;
     private int port;
-    private int count = 0;
+    public int count = 0;
     private int errorCount = 0;
     private boolean monitor = false;
     private final int maxThreads = 1;
@@ -34,13 +42,25 @@ public class Server extends Thread {
     @Override
     public void run() {
         try {
-            File carpetaCompartida = new File("C:\\Computacion Distribuida");
-            carpetaCompartida.mkdir();
+            EntityManagerFactory emf = Persistence.createEntityManagerFactory("epn.edu.ec_BibliotecaDigital_jar_1.0-SNAPSHOTPU");
+            File carpetaLibros = new File("C:\\Computacion Distribuida");
+            carpetaLibros.mkdir();
+            List<Libro> lstLibros = new LibroJpaController(emf).findLibroEntities();
+            byte[] bytes = new byte[64 * 1024];
+            for (Libro lbr : lstLibros) {
+                InputStream in = new ByteArrayInputStream(lbr.getArchivo());
+                FileOutputStream out = new FileOutputStream(new File("C:\\Computacion Distribuida" + lbr.getNombre()));
+                int contador;
+                while ((contador = in.read(bytes)) > 0) {
+                    out.write(bytes, 0, contador);
+                }
+                in.close();
+                out.close();
+            }
             ser = new ServerSocket(port);
             while (true) {
-                //                Socket clientSocket = ser.accept();
-                //                new Thread(new ServerRunnable(clientSocket, this)).start()
-                proccesRequest();
+                Socket clientSocket = ser.accept();
+                new Thread(new ServerRunnable(clientSocket, this)).start();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -49,14 +69,26 @@ public class Server extends Thread {
         }
     }
 
+    public synchronized void process() {
+        try {
+            Socket clientSocket = ser.accept();
+            new Thread(new ServerRunnable(clientSocket, this)).start();
+            count++;
+        } catch (IOException ex) {
+            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
     public synchronized void finishProcesor(boolean pError)
             throws Exception {
+        System.out.println("count: " + count);
 //        while (this.monitor) {
 //            this.wait();
 //        }
 //        this.monitor = true;
         try {
             this.count--;
+            System.out.println("count: " + count);
             if (pError) {
                 this.errorCount++;
             }
@@ -75,12 +107,14 @@ public class Server extends Thread {
 //        while (this.monitor || (this.count > this.maxThreads)) {
 
         Socket clientSocket = ser.accept();
+        System.out.println("count: " + count);
         if (this.count >= this.maxThreads) {
             System.out.println(
                     "Numero de Hilos Levantados para tranferencias en maximo "
                     + this.maxThreads);
             ocupado = true;
-            new Thread(new ServerRunnable(clientSocket, this,ocupado)).start();
+            new Thread(new ServerRunnable(clientSocket, this, ocupado)).start();
+            this.count++;
             return;
         }
 //            this.wait();

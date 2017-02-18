@@ -34,11 +34,11 @@ public class BalanceadorCarga extends Thread {
             while (true) {
                 Socket clientSocket = ser.accept();
                 new Thread(new BalancerRunnable(clientSocket)).start();
-                if (disponible) {
-                    setDisponible(false);
-                } else {
-                    setDisponible(true);
-                }
+//                if (disponible) {
+//                    setDisponible(false);
+//                } else {
+//                    setDisponible(true);
+//                }
             }
         } catch (IOException e) {
             e.printStackTrace();
