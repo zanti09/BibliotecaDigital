@@ -5,7 +5,6 @@
  */
 package epn.edu.ec.bibliotecadigital.servidor;
 
-import epn.edu.ec.bibliotecadigital.entidades.Disponibilidad;
 import epn.edu.ec.bibliotecadigital.entidades.Libro;
 import epn.edu.ec.bibliotecadigital.entidades.Usuario;
 import epn.edu.ec.bibliotecadigital.entidades.Usuariolibros;
@@ -22,6 +21,8 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Calendar;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import org.apache.commons.io.IOUtils;
@@ -35,7 +36,6 @@ public class ServerRunnable implements Runnable {
     protected Socket clientSocket;
     protected Server server;
     EntityManagerFactory emf;
-    Disponibilidad disponibilidad;
     private boolean ocupado;
 
     public ServerRunnable(Socket clientSocket, Server server) {
@@ -120,7 +120,7 @@ public class ServerRunnable implements Runnable {
                         usrLbr.setCodigolibro(lbr);
                         usrLbr.setNombrecuenta(new Usuario(nombreUsuario));
                         new UsuariolibrosJpaController(emf).create(usrLbr);
-                        disponibilidad.setRealizado(true);
+                        actualizarLibrosEnServidores(fileName);
                     } finally {
                         IOUtils.closeQuietly(in);
                     }
@@ -128,18 +128,62 @@ public class ServerRunnable implements Runnable {
                 case "obtenerLista":
                     ObjectOutputStream outToServer = new ObjectOutputStream(clientSocket.getOutputStream());
                     outToServer.writeObject(new LibroJpaController(emf).findLibroEntities());
-                    disponibilidad.setRealizado(true);
                     outToServer.close();
                     break;
                 case "verificarEstado":
                     dataOut.writeUTF(String.valueOf(server.isDisponible()));
                     break;
+                case "actualizar":
+                    dataIn = new DataInputStream(clientSocket.getInputStream());
+                    String fileNameFromServer = dataIn.readUTF();
+                    in = clientSocket.getInputStream();
+                    try {
+                        out = new FileOutputStream("C:\\Computacion Distribuida\\" + fileNameFromServer);
+                        byte[] bytes = new byte[64 * 1024];
+
+                        int count;
+                        while ((count = in.read(bytes)) > 0) {
+                            out.write(bytes, 0, count);
+                            System.err.println(count);
+                        }
+                        out.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } finally {
+                        IOUtils.closeQuietly(in);
+                    }
+
             }
             dataIn.close();
         } catch (IOException e) {
-            disponibilidad.setRealizado(false);
             e.printStackTrace();
-        } 
+        }
+    }
+
+    private void actualizarLibrosEnServidores(String fileName) {
+        try {
+            Socket socket = new Socket("192.168.100.14", 8888);
+            DataOutputStream dataOut = new DataOutputStream(socket.getOutputStream());
+            dataOut.writeUTF("actualizar");
+            dataOut.writeUTF("servidor");
+            dataOut.writeUTF(fileName);
+            OutputStream out = socket.getOutputStream();
+            try {
+                byte[] bytes = new byte[64 * 1024];
+                InputStream in = new FileInputStream("C:\\Computacion Distribuida\\" + fileName);
+
+                int count;
+                while ((count = in.read(bytes)) > 0) {
+                    out.write(bytes, 0, count);
+                }
+                in.close();
+            } finally {
+                IOUtils.closeQuietly(out);
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(ServerRunnable.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }
 
 }

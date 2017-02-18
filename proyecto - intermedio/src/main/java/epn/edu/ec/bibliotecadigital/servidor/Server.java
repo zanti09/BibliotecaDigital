@@ -49,7 +49,7 @@ public class Server extends Thread {
             byte[] bytes = new byte[64 * 1024];
             for (Libro lbr : lstLibros) {
                 InputStream in = new ByteArrayInputStream(lbr.getArchivo());
-                FileOutputStream out = new FileOutputStream(new File("C:\\Computacion Distribuida" + lbr.getNombre()));
+                FileOutputStream out = new FileOutputStream(new File("C:\\Computacion Distribuida\\" + lbr.getNombre()));
                 int contador;
                 while ((contador = in.read(bytes)) > 0) {
                     out.write(bytes, 0, contador);
@@ -141,7 +141,7 @@ public class Server extends Thread {
 
     public static void main(String[] args) {
 
-        Server server = new Server(8888);
+        Server server = new Server(9999);
         server.start();
 
 //        BalanceadorCarga balanceador = new BalanceadorCarga(7777);

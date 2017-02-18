@@ -167,7 +167,7 @@ public class UserApplication {
             return;
         }
 
-        Client client = new Client(8888, "127.0.0.1", "subir",  usr.getNombrecuenta(),f);
+        Client client = new Client(7777, "192.168.100.14", "subir",  usr.getNombrecuenta(),f);
         client.start();
         mostrarMenuPrincipal();
     }
@@ -206,7 +206,7 @@ public class UserApplication {
                 System.out.println("Código: " + cod + " no es numérico, ingrese solo números");
                 continue;
             }
-            Client client = new Client(8888, "127.0.0.1", "bajar", usr.getNombrecuenta(), cod);
+            Client client = new Client(7777, "192.168.100.14", "bajar", usr.getNombrecuenta(), cod);
             client.start();
         }
         try {
@@ -219,7 +219,7 @@ public class UserApplication {
     }
 
     private void obtenerListaLibros() {
-        Client client = new Client(8888, "127.0.0.1", "obtenerLista",usr.getNombrecuenta());
+        Client client = new Client(7777, "192.168.100.14", "obtenerLista",usr.getNombrecuenta());
         client.start();
         try {
             Thread.sleep(2000);
