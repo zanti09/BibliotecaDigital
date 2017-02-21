@@ -65,7 +65,7 @@ public class BalancerRunnable implements Runnable {
 
         try {
             clientSocketServer = new Socket(ipServidorUno, puertoServidorUno);
-            infoServer[0] = "127.0.0.1";
+            infoServer[0] = ipServidorUno;
             infoServer[1] = puertoServidorUno;
         } catch (IOException ex) {
             System.out.println("Servidor en dirección: " + ipServidorUno + ":" + puertoServidorUno + " no disponile");
