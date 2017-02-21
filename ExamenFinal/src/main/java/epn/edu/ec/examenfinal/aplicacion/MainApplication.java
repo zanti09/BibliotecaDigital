@@ -66,7 +66,6 @@ public class MainApplication {
         String contrasena = entradaEscaner.nextLine();
         Client client=new Client(8888, "192.168.100.83", "registrar", nombreUsuario,contrasena);
         client.conect(this);
-        iniciar();
     }
 
 }

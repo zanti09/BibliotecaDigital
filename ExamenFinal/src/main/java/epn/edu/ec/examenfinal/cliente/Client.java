@@ -75,10 +75,11 @@ public class Client extends Thread {
                         break;
                     }
                     System.out.println("Usuario registrado\n");
+                    mainApplication.registrarUsuario();
                     break;
                 case "autenticar":
                     if (dataIn.readBoolean()) {
-                        System.out.println("Usuario ya registrado\n");
+                        System.out.println("Usuario no existe\n");
                         mainApplication.iniciar();
                         break;
                     }
